@@ -3,18 +3,10 @@
 //! Inference engine for closedAI. All inference flows through the [`Engine`]
 //! trait so later milestones can substitute a distributed executor.
 
-/// Temporary anchor so the workspace has a test before real types exist.
-/// Removed in Task 2.
-pub fn hello_ok() -> bool {
-    true
-}
+pub mod engine;
+pub mod error;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn workspace_builds_and_tests_run() {
-        assert!(hello_ok());
-    }
-}
+pub use engine::{
+    Engine, GeneratedToken, GenerationOutcome, GenerationParams, ModelInfo, StopReason,
+};
+pub use error::EngineError;
