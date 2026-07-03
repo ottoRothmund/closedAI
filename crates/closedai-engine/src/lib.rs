@@ -3,11 +3,13 @@
 //! Inference engine for closedAI. All inference flows through the [`Engine`]
 //! trait so later milestones can substitute a distributed executor.
 
+pub mod download;
 pub mod engine;
 pub mod error;
 pub mod llama;
 pub mod model_ref;
 
+pub use download::resolve_model;
 pub use engine::{
     Engine, GeneratedToken, GenerationOutcome, GenerationParams, ModelInfo, StopReason,
 };

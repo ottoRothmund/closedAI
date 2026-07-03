@@ -16,4 +16,7 @@ pub enum EngineError {
 
     #[error("prompt is {prompt} tokens but the context window is {n_ctx}")]
     ContextOverflow { prompt: usize, n_ctx: usize },
+
+    #[error("failed to download model: {0}")]
+    Download(String),
 }
