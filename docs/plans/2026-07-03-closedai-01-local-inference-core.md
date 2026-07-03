@@ -498,10 +498,7 @@ impl ModelRef {
     /// is a Hugging Face reference; everything else is a local path.
     pub fn parse(input: &str) -> Result<ModelRef, ModelRefError> {
         let trimmed = input.trim();
-        if let Some(rest) = trimmed
-            .strip_prefix("hf.co/")
-            .or_else(|| trimmed.strip_prefix("https://huggingface.co/"))
-        {
+        if let Some(rest) = trimmed.strip_prefix("hf.co/") {
             let parts: Vec<&str> = rest.split('/').filter(|s| !s.is_empty()).collect();
             if parts.len() < 3 {
                 return Err(ModelRefError::Malformed(format!(
