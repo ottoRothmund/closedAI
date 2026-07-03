@@ -5,10 +5,12 @@
 
 pub mod engine;
 pub mod error;
+pub mod llama;
 pub mod model_ref;
 
 pub use engine::{
     Engine, GeneratedToken, GenerationOutcome, GenerationParams, ModelInfo, StopReason,
 };
 pub use error::EngineError;
+pub use llama::LlamaEngine;
 pub use model_ref::{ModelRef, ModelRefError};
