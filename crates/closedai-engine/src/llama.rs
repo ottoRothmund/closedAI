@@ -90,18 +90,14 @@ impl Engine for LlamaEngine {
         params: &GenerationParams,
         on_token: &mut dyn FnMut(GeneratedToken) -> ControlFlow<()>,
     ) -> Result<GenerationOutcome, EngineError> {
-        let ctx_params =
-            LlamaContextParams::default().with_n_ctx(std::num::NonZeroU32::new(self.n_ctx));
-        let mut ctx = self
-            .model
-            .new_context(&self.backend, ctx_params)
-            .map_err(|e| EngineError::Load(e.to_string()))?;
-
         let tokens = self
             .model
             .str_to_token(prompt, AddBos::Always)
             .map_err(|e| EngineError::Tokenize(e.to_string()))?;
         let prompt_tokens = tokens.len();
+        if prompt_tokens == 0 {
+            return Err(EngineError::Tokenize("prompt produced no tokens".into()));
+        }
         if prompt_tokens >= self.n_ctx as usize {
             return Err(EngineError::ContextOverflow {
                 prompt: prompt_tokens,
@@ -109,8 +105,15 @@ impl Engine for LlamaEngine {
             });
         }
 
+        let ctx_params =
+            LlamaContextParams::default().with_n_ctx(std::num::NonZeroU32::new(self.n_ctx));
+        let mut ctx = self
+            .model
+            .new_context(&self.backend, ctx_params)
+            .map_err(|e| EngineError::Load(e.to_string()))?;
+
         // Feed the prompt; request logits only for the final token.
-        let mut batch = LlamaBatch::new(512, 1);
+        let mut batch = LlamaBatch::new(prompt_tokens, 1);
         let last = prompt_tokens - 1;
         for (i, tok) in tokens.iter().enumerate() {
             batch
