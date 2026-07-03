@@ -259,11 +259,27 @@ make it faster. The product surfaces this rather than hiding it.
 - **One model per swarm.** The model is fixed in the manifest. To run a different
   model, join or found a different swarm. This keeps span assignment, verification,
   and caching simple and matches the "everyone powers the same model" intent.
-- **Swappable flagship.** The flagship model is a single manifest field. The
-  reference default targets the ~235B–355B sparse-MoE class (for example a Qwen3- or
-  GLM-class model, or an abliterated variant), which pools across roughly a dozen
-  modest nodes at a realistic few tokens/second. A swarm can launch with a smaller
-  model and move up as its always-on capacity grows.
+- **Launch flagship (reference default).** The flagship community swarm launches on
+  **GLM-4.7-Flash, uncensored** — the huihui-ai abliterated / p-e-w Heretic build of
+  Zhipu's GLM-4.7-Flash. It is a 30B-parameter sparse MoE with only ~3B active
+  parameters per token, MIT-licensed at the base, 131k context, distributed as GGUF
+  (Q4_K_M ≈ 18.2 GB, Q5_K_M ≈ 21.4 GB, Q8_0 ≈ 31.9 GB), on a llama.cpp-native
+  `deepseek2`/MLA architecture. It is chosen because it is genuinely uncensored,
+  cleanly licensed (the MIT base avoids the redistribution-takedown risk that removed
+  some Llama-derived Heretic builds from Hugging Face in 2026), and light enough to
+  run well across the spare, background resources members are expected to contribute —
+  ~3B active parameters keep per-hop compute and per-token latency low.
+  At ~18 GB it also fits on a single capable machine, so for this model a swarm's
+  value is **shared hosting, redundancy, and pooled access to one collectively-run
+  uncensored model** rather than memory pooling. That is exactly the "one model anyone
+  contributing can query" intent; memory pooling becomes the value at the next tier.
+- **Pooling tier (swap-up path).** The model is a single manifest field. Pointing it
+  at a large abliterated MoE — a Qwen3-235B-class, GLM-4.6-355B-class, or
+  DeepSeek-family uncensored build — turns the same swarm into one that runs a model
+  no member could host alone. Because GLM-4.7-Flash already uses the `deepseek2`/MLA
+  architecture family, moving up to a DeepSeek-family MoE may need no new engine
+  adapter. A swarm launches small and moves up as its always-on capacity grows, with
+  no code change.
 - **Peer-local span loading.** Each node loads only the weights for its assigned
   layer span. The daemon parses the GGUF tensor directory, computes the byte ranges
   for its span's tensors, and fetches only those ranges from Hugging Face via HTTP
@@ -275,8 +291,11 @@ make it faster. The product surfaces this rather than hiding it.
   through any infrastructure it operates. This sidesteps model-license redistribution
   obligations (for example the Llama Community License) and keeps the project a
   neutral conduit. Recommended defaults are permissively licensed weights (MIT/
-  Apache-class: DeepSeek, Qwen, Mistral) where mirroring would be clean anyway; the
-  daemon surfaces each model's license metadata to swarm founders.
+  Apache-class: GLM, DeepSeek, Qwen, Mistral) where mirroring would be clean anyway;
+  the daemon surfaces each model's license metadata to swarm founders. The 2026
+  removal of some Llama-derived Heretic builds from Hugging Face after a Meta legal
+  notice is the concrete precedent behind preferring MIT/Apache bases and never
+  redistributing weights.
 
 ## 9. Trust, privacy, and safety
 
