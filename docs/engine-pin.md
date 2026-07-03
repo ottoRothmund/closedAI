@@ -166,9 +166,10 @@ bool llama_hparams::is_mla() const {
 }
 ```
 `is_mla()`/`n_embd_head_k_mla()`/`n_embd_head_v_mla()` are also referenced from
-`llama-graph.cpp` and `llama-model.cpp` (attention-graph construction and
-tensor creation), i.e. MLA is load-bearing across the model, not an isolated
-helper.
+`llama-kv-cache.cpp` (`const bool has_v = !is_mla;` at line 243 — MLA changes the
+KV-cache layout) and `llama-model.cpp` (the `print_info` line that emits the
+`n_embd_head_*_mla` values seen in the live run below), i.e. MLA is load-bearing
+across the model, not an isolated helper.
 
 ### GLM-4.7-Flash specifically loads as `deepseek2`
 
@@ -225,16 +226,17 @@ $ CLOSEDAI_ARCH_MODEL=/Users/otto/Dev/closedAI/.closedai-cache/deepseek-v2-lite.
 
 running 1 test
 llama_model_loader: - kv   0:              general.architecture str = deepseek2
+llama_model_loader: - kv  14:      deepseek2.attention.kv_lora_rank u32 = 512
 print_info: arch                  = deepseek2
 print_info: n_embd_head_k_mla     = 192
 print_info: n_embd_head_v_mla     = 128
-    (deepseek2.attention.kv_lora_rank = 512 — MLA low-rank KV path active)
 test loads_flagship_architecture ... ok
 ```
 
 The pinned engine loaded the model, resolved its `deepseek2` architecture, and
-populated the MLA head dimensions (`n_embd_head_k_mla`/`n_embd_head_v_mla`) —
-confirming the flagship `deepseek2`/MLA path is not merely compiled in but
+populated the MLA head dimensions (`n_embd_head_k_mla = 192`,
+`n_embd_head_v_mla = 128`) with the low-rank KV projection (`kv_lora_rank = 512`)
+— confirming the flagship `deepseek2`/MLA path is not merely compiled in but
 actually load-bearing at runtime. `cargo test --workspace` (no
 `CLOSEDAI_ARCH_MODEL` set) still passes offline: the test no-ops when the env
 var is unset.
