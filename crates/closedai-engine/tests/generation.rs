@@ -46,3 +46,23 @@ fn generates_tokens_from_a_prompt() {
     ));
     assert!(!collected.trim().is_empty(), "expected non-empty output");
 }
+
+/// Verifies the pinned llama.cpp loads the flagship architecture family.
+/// Set CLOSEDAI_ARCH_MODEL to an ABSOLUTE path to a small `deepseek2`/MLA GGUF
+/// (for example a GLM-4.7-Flash quant, or the smallest available DeepSeek-family
+/// GGUF). Must be absolute: `cargo test` runs this binary with its working
+/// directory set to the package directory, not the repo root, so a relative
+/// path will not resolve as expected.
+#[test]
+fn loads_flagship_architecture() {
+    let Some(model) = std::env::var_os("CLOSEDAI_ARCH_MODEL").map(std::path::PathBuf::from) else {
+        eprintln!("skipping: set CLOSEDAI_ARCH_MODEL to a deepseek2/MLA GGUF to run");
+        return;
+    };
+    let engine = closedai_engine::LlamaEngine::load(&model, 2048, 0);
+    assert!(
+        engine.is_ok(),
+        "pinned llama.cpp must load deepseek2/MLA: {:?}",
+        engine.err()
+    );
+}
