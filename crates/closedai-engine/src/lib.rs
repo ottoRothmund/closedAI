@@ -5,8 +5,10 @@
 
 pub mod engine;
 pub mod error;
+pub mod model_ref;
 
 pub use engine::{
     Engine, GeneratedToken, GenerationOutcome, GenerationParams, ModelInfo, StopReason,
 };
 pub use error::EngineError;
+pub use model_ref::{ModelRef, ModelRefError};
