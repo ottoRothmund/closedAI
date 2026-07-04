@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = ["crates/closedai-engine", "crates/closedai-cli"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+repository = ""
+
+[workspace.dependencies]
+thiserror = "1"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+hf-hub = "0.3"
+encoding_rs = "0.8"
+# Pin exactly; Task 7 verifies the bundled llama.cpp is >= b8492 and loads deepseek2.
+llama-cpp-2 = "=0.1.150"

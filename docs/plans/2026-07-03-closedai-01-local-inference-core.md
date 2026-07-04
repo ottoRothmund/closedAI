@@ -92,7 +92,7 @@ clap = { version = "4", features = ["derive"] }
 hf-hub = "0.3"
 encoding_rs = "0.8"
 # Pin exactly; Task 7 verifies the bundled llama.cpp is >= b8492 and loads deepseek2.
-llama-cpp-2 = "=0.1.121"
+llama-cpp-2 = "=0.1.150"
 ```
 
 - [ ] **Step 2: Add the toolchain pin, gitignore, and license**
@@ -498,10 +498,7 @@ impl ModelRef {
     /// is a Hugging Face reference; everything else is a local path.
     pub fn parse(input: &str) -> Result<ModelRef, ModelRefError> {
         let trimmed = input.trim();
-        if let Some(rest) = trimmed
-            .strip_prefix("hf.co/")
-            .or_else(|| trimmed.strip_prefix("https://huggingface.co/"))
-        {
+        if let Some(rest) = trimmed.strip_prefix("hf.co/") {
             let parts: Vec<&str> = rest.split('/').filter(|s| !s.is_empty()).collect();
             if parts.len() < 3 {
                 return Err(ModelRefError::Malformed(format!(
@@ -558,7 +555,7 @@ git commit -m "feat(engine): parse local and Hugging Face model references"
   - `impl LlamaEngine { pub fn load(model_path: &std::path::Path, n_ctx: u32, n_gpu_layers: u32) -> Result<LlamaEngine, EngineError>; }`
   - `impl Engine for LlamaEngine`
 
-**Note on the binding:** The code below follows the `llama-cpp-2` API (`LlamaBackend`, `LlamaModel::load_from_file`, `LlamaContextParams`, `LlamaBatch`, `LlamaSampler`, `token_to_piece`). Import paths and one or two signatures can drift between crate versions — build against the pinned `=0.1.121` and reconcile any mismatch against its docs.rs page; do not upgrade the pin to resolve a compile error without redoing Task 7's verification.
+**Note on the binding:** The code below follows the `llama-cpp-2` API (`LlamaBackend`, `LlamaModel::load_from_file`, `LlamaContextParams`, `LlamaBatch`, `LlamaSampler`, `token_to_piece`). Import paths and one or two signatures can drift between crate versions — build against the pinned `=0.1.150` and reconcile any mismatch against its docs.rs page; do not upgrade the pin to resolve a compile error without redoing Task 7's verification.
 
 - [ ] **Step 1: Write the failing integration test**
 
@@ -815,7 +812,7 @@ pub use llama::LlamaEngine;
 Run: `CLOSEDAI_TEST_MODEL=.closedai-cache/smol.gguf cargo test -p closedai-engine --test generation`
 Expected: PASS — `generates_tokens_from_a_prompt` produces non-empty output.
 
-If a method name mismatches the pinned crate, open the `llama-cpp-2` `=0.1.121` docs on docs.rs, find the equivalent, and adjust — keep the surrounding structure. Most likely reconciliations: `is_eog_token` may be absent — fall back to `token == self.model.token_eos()` (that only catches the single EOS token, so multi-stop chat models like the flagship may generate to `max_tokens`, which is acceptable this milestone); `token_to_piece` may be named `token_to_str`; `with_n_ctx` expects `Option<NonZeroU32>`; `n_ctx_train` may return `u32` already (drop the cast).
+If a method name mismatches the pinned crate, open the `llama-cpp-2` `=0.1.150` docs on docs.rs, find the equivalent, and adjust — keep the surrounding structure. Most likely reconciliations: `is_eog_token` may be absent — fall back to `token == self.model.token_eos()` (that only catches the single EOS token, so multi-stop chat models like the flagship may generate to `max_tokens`, which is acceptable this milestone); `token_to_piece` may be named `token_to_str`; `with_n_ctx` expects `Option<NonZeroU32>`; `n_ctx_train` may return `u32` already (drop the cast).
 
 - [ ] **Step 6: Run clippy and fmt**
 
@@ -1150,7 +1147,7 @@ Record the discovered build number in `docs/engine-pin.md`. If it is below **b84
 ```markdown
 # Engine pin
 
-- `llama-cpp-2` version: `=0.1.121`
+- `llama-cpp-2` version: `=0.1.150`
 - Bundled llama.cpp build: `[bXXXX]`
 - CVE-2026-34159 (RCE in the RPC backend, fixed in b8492): satisfied because the
   bundled build is `[bXXXX] >= b8492`. closedAI additionally never uses the RPC
